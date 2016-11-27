@@ -1,0 +1,443 @@
+/WebContent/WEB-INF/somethxxx-servlet.xml
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+ http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+ http://www.springframework.org/schema/mvc
+ http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd
+ http://www.springframework.org/schema/context
+ http://www.springframework.org/schema/context/spring-context-3.2.xsd
+ http://www.springframework.org/schema/aop 
+ http://www.springframework.org/schema/aop/spring-aop-3.2.xsd ">
+
+	
+	<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="order" value="0" />
+		<property name="prefix" value="/WEB-INF/pages/" />
+		<property name="suffix" value=".jsp" />
+		<property name="requestContextAttribute" value="requestContext" />
+	</bean>
+	
+
+	<bean class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+	    <property name="exceptionMappings">
+	    	<map>
+	    		<entry key="org.springframework.security.access.AccessDeniedException" value="erreur/erreur-acces"/>
+	    	</map>
+	    </property>
+	</bean>
+	
+</beans>
+
+
+/******************  web.xml **************
+<web-app 
+   xmlns="http://java.sun.com/xml/ns/javaee" 
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" 
+   version="2.5">
+
+	<display-name>Application Web Spring MVC - remuneration-active-web</display-name>
+
+	<context-param>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>/WEB-INF/application-context.xml</param-value>
+	</context-param>
+
+	<context-param>
+	    <param-name>contextInitializerClasses</param-name>
+	    <param-value>com.desjardins.fwd.context.support.ConfigurationSpringBinder</param-value>
+	</context-param>
+	
+	<jsp-config>
+    	<jsp-property-group>
+	       	<url-pattern>*.jsp</url-pattern>
+       		<page-encoding>UTF-8</page-encoding>
+    	</jsp-property-group>
+	</jsp-config>
+
+	<listener>
+		<description>Permet de gérer/valider les configurations de l'application au démarrage</description>
+		<listener-class>com.desjardins.fwd.listener.AppContextListener</listener-class>
+	</listener>
+	
+	<listener>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+
+	<filter>
+		<description>Log les requêtes problématiques en mode WARN (Exemple: HTTP 404)</description>
+		<filter-name>FiltreRequetesProblematiques</filter-name>
+		<filter-class>com.desjardins.fwd.filtres.FiltreRequetesProblematiques</filter-class>
+<!-- 		<init-param> -->
+<!-- 			<description>Liste des ressources qui peuvent être ignorées</description> -->
+<!--  			<param-name>ressources.ignorees</param-name> --> 
+<!-- 				param-value>properties</param-value -->
+<!-- 		</init-param> -->
+	</filter>
+	
+    <filter>
+	  <description>Règle le problème de path avec CSS3 PIE</description>
+      <filter-name>FiltreRelativeToAbsolutePathInCSS</filter-name>
+      <filter-class>com.desjardins.fwd.filtres.FiltreRelativeToAbsolutePathInCSS</filter-class>
+    </filter>
+
+	<filter>
+		<description>Permet à des requêtes Ajax de récupérer les resources bundle (*.properties) de libellés</description>
+		<filter-name>FiltreRessourcesI18n</filter-name>
+		<filter-class>com.desjardins.fwd.filtres.FiltreRessourceBundleMessageSource</filter-class>
+		<init-param>
+			<param-name>patterns.cles</param-name>
+			<param-value>libelle.code.*</param-value>
+		</init-param>
+
+	</filter>
+	
+	<filter>
+		<description>Ajoute un token de requête pour les logs</description>
+		<filter-name>FiltreTokenRequete</filter-name>
+		<filter-class>com.desjardins.fwd.filtres.FiltreTokenRequete</filter-class>
+	</filter>
+	
+	<filter>
+		<description>Log les directives jsp:includes appelées pour la génération de la vue</description>
+	    <filter-name>FiltreSecuriteIncludes</filter-name>
+	    <filter-class>com.desjardins.fwd.filtres.FiltreSecuriteIncludes</filter-class>
+	</filter>
+	
+	<filter>
+		<description>Log les requêtes</description>
+		<filter-name>FiltreStatsRequetes</filter-name>
+		<filter-class>com.desjardins.fwd.filtres.FiltreStatsRequetes</filter-class>
+		<init-param>
+			<description>Liste des ressources qui peuvent être ignorées</description>
+			<param-name>ressources.ignorees</param-name>
+			<param-value>css jpeg jpg png gif js properties</param-value>
+		</init-param>
+	</filter>
+	
+	<filter>  
+    	<filter-name>encodingFilter</filter-name>  
+    	<filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>  
+    	<init-param>  
+   			<param-name>encoding</param-name>  
+   			<param-value>UTF-8</param-value>  
+   		</init-param>  
+   		<init-param>  
+   			<param-name>forceEncoding</param-name>  
+   			<param-value>true</param-value>  
+   		</init-param>  
+	</filter>  
+	
+	
+	<!-- Filtre pour Spring Security --> 
+	<filter>
+		<filter-name>filterChainProxy</filter-name>
+		<filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+	</filter> 
+	
+	
+	<!-- Partage des données de session sur un domaine N2 -->
+	<filter>
+		<filter-name>filtrePasserelleGDS</filter-name>
+		<filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+	</filter>
+	
+	
+	<servlet>
+		<servlet-name>mvc-dispatcher</servlet-name>
+		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+		<load-on-startup>2</load-on-startup>
+	</servlet>
+
+	<filter-mapping>
+		<filter-name>FiltreStatsRequetes</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+	<filter-mapping>
+		<filter-name>FiltreRequetesProblematiques</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+    <filter-mapping>
+      <filter-name>FiltreRelativeToAbsolutePathInCSS</filter-name>
+      <url-pattern>*.css</url-pattern>
+    </filter-mapping>
+    
+	<filter-mapping>
+		<filter-name>FiltreRessourcesI18n</filter-name>
+		<url-pattern>/fwdi18n/*</url-pattern>
+	</filter-mapping>
+
+	<filter-mapping>
+		<filter-name>FiltreRessourcesI18n</filter-name>
+		<url-pattern>*.properties</url-pattern>
+	</filter-mapping>	
+
+	<filter-mapping>
+		<filter-name>FiltreTokenRequete</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+	
+	<filter-mapping>
+		<filter-name>FiltreSecuriteIncludes</filter-name>
+		<url-pattern>/*</url-pattern>
+		<dispatcher>INCLUDE</dispatcher>
+	</filter-mapping>
+	
+	<filter-mapping>  
+	    <filter-name>encodingFilter</filter-name>  
+	    <url-pattern>/*</url-pattern>  
+	</filter-mapping>
+	
+	<filter-mapping>
+        <filter-name>filterChainProxy</filter-name>
+        <url-pattern>/*</url-pattern>
+	</filter-mapping>
+	
+	<servlet-mapping>
+		<servlet-name>mvc-dispatcher</servlet-name>
+		<url-pattern>/</url-pattern>
+	</servlet-mapping>
+	
+	<!-- Partage des données de session sur un domaine N2 -->
+	<filter-mapping>
+		<filter-name>filtrePasserelleGDS</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+	<!-- ********************************************************************* -->
+	<!-- Gestion des erreurs -->
+	<!-- ********************************************************************* -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>400</error-code> -->
+<!-- 	 	<location>/jsp/erreurs/erreur400.jsp</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>401</error-code> -->
+<!-- 		<location>/jsp/erreurs/erreur401.jsp</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>402</error-code> -->
+<!-- 		<location>/jsp/erreurs/erreur402.jsp</location> -->
+<!-- 	</error-page> -->
+	<error-page>
+		<error-code>403</error-code>
+		<location>/pages/erreur/erreur-acces.jsp</location>
+	</error-page>
+<!-- 	<error-page> -->
+<!-- 		<error-code>404</error-code> -->
+<!-- 		<location>/jsp/erreurs/erreur404.jsp</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>405</error-code> -->
+<!-- 		<location>/jsp/erreurs/erreur405.jsp</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>406</error-code> -->
+<!-- 		<location>/jsp/erreurs/erreur406.jsp</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>407</error-code> -->
+<!-- 		<location>/jsp/erreurs/erreur407.jsp</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>408</error-code> -->
+<!-- 		<location>/jsp/erreurs/erreur408.jsp</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>409</error-code> -->
+<!-- 		<location>/jsp/erreurs/erreur409.jsp</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>410</error-code> -->
+<!-- 		<location>/jsp/erreurs/erreur410.jsp</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>411</error-code> -->
+<!-- 		<location>/jsp/erreurs/erreur411.jsp</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>412</error-code> -->
+<!-- 		<location>/jsp/erreurs/erreur412.jsp</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>413</error-code> -->
+<!-- 		<location>/jsp/erreurs/erreur413.jsp</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>414</error-code> -->
+<!-- 		<location>/jsp/erreurs/erreur414.jsp</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>415</error-code> -->
+<!-- 		<location>/jsp/erreurs/erreur415.jsp</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>416</error-code> -->
+<!-- 		<location>/jsp/erreurs/erreur416.jsp</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>417</error-code> -->
+<!-- 		<location>/jsp/erreurs/erreur417.jsp</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>418</error-code> -->
+<!-- 		<location>/jsp/erreurs/erreur418.jsp</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>419</error-code> -->
+<!-- 		<location>/jsp/erreurs/erreur419.jsp</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>420</error-code> -->
+<!-- 		<location>/jsp/erreurs/erreur420.jsp</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>421</error-code> -->
+<!-- 		<location>/jsp/erreurs/erreur421.jsp</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>422</error-code> -->
+<!-- 		<location>/jsp/erreurs/erreur422.jsp</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>423</error-code> -->
+<!-- 		<location>/jsp/erreurs/erreur423.jsp</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>424</error-code> -->
+<!-- 		<location>/jsp/erreurs/erreur424.jsp</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>425</error-code> -->
+<!-- 		<location>/jsp/erreurs/erreur425.jsp</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>426</error-code> -->
+<!-- 		<location>/jsp/erreurs/erreur426.jsp</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>427</error-code> -->
+<!-- 		<location>/jsp/erreurs/erreur427.jsp</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>428</error-code> -->
+<!-- 		<location>/jsp/erreurs/erreur428.jsp</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>429</error-code> -->
+<!-- 		<location>/jsp/erreurs/erreur429.jsp</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>430</error-code> -->
+<!-- 		<location>/jsp/erreurs/erreur430.jsp</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>431</error-code> -->
+<!-- 		<location>/jsp/erreurs/erreur431.jsp</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>444</error-code> -->
+<!-- 		<location>/jsp/erreurs/erreur444.jsp</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>449</error-code> -->
+<!-- 		<location>/jsp/erreurs/erreur449.jsp</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>450</error-code> -->
+<!-- 		<location>/jsp/erreurs/erreur450.jsp</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>451</error-code> -->
+<!-- 		<location>/jsp/erreurs/erreur451.jsp</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>499</error-code> -->
+<!-- 		<location>/jsp/erreurs/erreur499.jsp</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>500</error-code> -->
+<!-- 		<location>/jsp/erreurs/erreur500.jsp</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>501</error-code> -->
+<!-- 		<location>/jsp/erreurs/erreur501.jsp</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>502</error-code> -->
+<!-- 		<location>/jsp/erreurs/erreur502.jsp</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>503</error-code> -->
+<!-- 		<location>/jsp/erreurs/erreur503.jsp</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>504</error-code> -->
+<!-- 		<location>/jsp/erreurs/erreur504.jsp</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>505</error-code> -->
+<!-- 		<location>/jsp/erreurs/erreur505.jsp</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>506</error-code> -->
+<!-- 		<location>/jsp/erreurs/erreur506.jsp</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>507</error-code> -->
+<!-- 		<location>/jsp/erreurs/erreur507.jsp</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>508</error-code> -->
+<!-- 		<location>/jsp/erreurs/erreur508.jsp</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>509</error-code> -->
+<!-- 		<location>/jsp/erreurs/erreur509.jsp</location> -->
+<!-- 	</error-page> -->
+	<!-- error-page>
+		<error-code>510</error-code>
+		<location>/jsp/erreurs/erreur510.jsp</location>
+	</error-page -->
+	<!-- error-page>
+		<error-code>511</error-code>
+		<location>/jsp/erreurs/erreur511.jsp</location>
+	</error-page -->
+	<!-- error-page>
+		<error-code>598</error-code>
+		<location>/jsp/erreurs/erreur598.jsp</location>
+	</error-page-->
+	<!-- error-page>
+		<error-code>599</error-code>
+		<location>/jsp/erreurs/erreur599.jsp</location>
+	</error-page -->
+
+	<error-page>
+		<exception-type>java.lang.Throwable</exception-type>
+		<location>/pages/erreur/erreur.jsp</location>
+	</error-page>
+	
+	    <!-- Indique que Weblogic doit utiliser le IdentityAsserter -->
+  <login-config>
+    <auth-method>CLIENT-CERT</auth-method>
+    <realm-name>NoSuchRealm</realm-name>
+  </login-config>
+	
+	<security-role>
+		<role-name>CAI_GRIV_Gestionnaire</role-name>
+	</security-role>
+		<security-role>
+		<role-name>EMP_GRIV_Conformite</role-name>
+	</security-role>
+	
+	<security-role>
+		<role-name>EMP_GRIV_Parametrage</role-name>
+	</security-role>
+	
+</web-app>
