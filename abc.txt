@@ -1,10 +1,25 @@
-hello git
-echo "# repository" >> README.md
-git init
-git add README.md
-git commit -m "first commit"
-git remote add origin https://github.com/ztayeb/repository.git
-git push -u origin master
-#===============================================================
-##  additional  text
-#
+import java.io.BufferedReader;
+ java.io.FileReader;
+ java.io.FileNotFoundException;
+ java.io.IOException;
+
+class LireLigne 
+{
+  public static void main(String[] argv) throws IOException
+  {
+    BufferedReader lecteurAvecBuffer = null;
+    String ligne;
+
+    try
+      {
+	lecteurAvecBuffer = new BufferedReader(new FileReader(argv[0]));
+      }
+    catch(FileNotFoundException exc)
+      {
+	System.out.println("Erreur d'ouverture");
+      }
+    while ((ligne = lecteurAvecBuffer.readLine()) != null)
+      System.out.println(ligne);
+    lecteurAvecBuffer.close();
+  }
+} 
